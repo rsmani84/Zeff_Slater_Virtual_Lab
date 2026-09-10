@@ -1,8 +1,9 @@
+```python
 import streamlit as st
 
-# --------------------------------------------------
+# ==================================================
 # PAGE CONFIGURATION
-# --------------------------------------------------
+# ==================================================
 
 st.set_page_config(
     page_title="Zeff Virtual Lab",
@@ -10,397 +11,466 @@ st.set_page_config(
     layout="wide"
 )
 
-# --------------------------------------------------
-# TITLE
-# --------------------------------------------------
+# ==================================================
+# ELECTRON CONFIGURATION FUNCTION
+# ==================================================
 
-st.title("⚛️ Virtual Chemistry Laboratory")
+def get_electron_configuration(Z):
+    """
+    Generate electron configuration using Aufbau principle.
+    Supports atomic numbers 1–36.
+    """
 
-st.subheader(
-    "Problems on Calculation of Effective Nuclear Charge (Zeff) "
-    "Using Slater's Rules"
-)
-
-st.divider()
-
-# --------------------------------------------------
-# SIDEBAR MENU
-# --------------------------------------------------
-
-st.sidebar.title("🧪 Virtual Lab Menu")
-
-menu = st.sidebar.radio(
-    "Select an Activity",
-    [
-        "🏠 Home",
-        "📚 Theory",
-        "📖 Slater's Rules",
-        "🧮 Zeff Calculator",
-        "📝 Practice Problems"
+    orbitals = [
+        ("1s", 2),
+        ("2s", 2),
+        ("2p", 6),
+        ("3s", 2),
+        ("3p", 6),
+        ("4s", 2),
+        ("3d", 10),
+        ("4p", 6),
+        ("5s", 2),
+        ("4d", 10),
+        ("5p", 6),
     ]
-)
+
+    remaining = Z
+    configuration = {}
+
+    for orbital, capacity in orbitals:
+
+        electrons = min(remaining, capacity)
+
+        if electrons > 0:
+            configuration[orbital] = electrons
+
+        remaining -= electrons
+
+        if remaining <= 0:
+            break
+
+    return configuration
+
 
 # ==================================================
-# HOME PAGE
+# FORMAT ELECTRON CONFIGURATION
 # ==================================================
 
-if menu == "🏠 Home":
+def format_configuration(configuration):
 
-    st.header("Welcome to the Virtual Laboratory")
+    superscripts = {
+        "0": "⁰",
+        "1": "¹",
+        "2": "²",
+        "3": "³",
+        "4": "⁴",
+        "5": "⁵",
+        "6": "⁶",
+        "7": "⁷",
+        "8": "⁸",
+        "9": "⁹"
+    }
 
-    st.write("""
-    This virtual laboratory helps students understand and solve problems
-    related to the calculation of Effective Nuclear Charge (Zeff)
-    using Slater's Rules.
-    """)
+    text = ""
 
-    st.info("""
-    ### Learning Objectives
+    for orbital, electrons in configuration.items():
 
-    After completing this virtual lab, students will be able to:
-
-    • Understand the concept of shielding effect.
-
-    • Understand effective nuclear charge.
-
-    • Apply Slater's Rules.
-
-    • Calculate the shielding constant (S).
-
-    • Calculate the effective nuclear charge (Zeff).
-    """)
-
-    st.latex(r"Z_{eff} = Z - S")
-
-    st.success("Select an activity from the sidebar to begin!")
-
-# ==================================================
-# THEORY PAGE
-# ==================================================
-
-elif menu == "📚 Theory":
-
-    st.header("📚 Effective Nuclear Charge")
-
-    st.write("""
-    In a multi-electron atom, electrons are attracted by the positively
-    charged nucleus. However, inner electrons partially block or shield
-    the nuclear attraction experienced by outer electrons.
-    """)
-
-    st.subheader("Shielding Effect")
-
-    st.write("""
-    The reduction in the attractive force between the nucleus and an outer
-    electron due to the presence of inner electrons is called the
-    shielding effect.
-    """)
-
-    st.subheader("Effective Nuclear Charge")
-
-    st.write("""
-    The actual positive charge experienced by an electron in a
-    multi-electron atom is called the Effective Nuclear Charge.
-    """)
-
-    st.latex(r"Z_{eff} = Z - S")
-
-    st.write("""
-    Where:
-
-    Z = Atomic number
-
-    S = Shielding constant
-
-    Zeff = Effective nuclear charge
-    """)
-
-# ==================================================
-# SLATER'S RULES
-# ==================================================
-
-elif menu == "📖 Slater's Rules":
-
-    st.header("📖 Slater's Rules")
-
-    st.subheader("For ns and np Electrons")
-
-    st.write("""
-    Electrons are arranged into the following groups:
-    """)
-
-    st.code("""
-(1s)
-(2s, 2p)
-(3s, 3p)
-(3d)
-(4s, 4p)
-(4d)
-(4f)
-(5s, 5p)
-    """)
-
-    st.markdown("""
-    ### Shielding Contributions
-
-    **1. Other electrons in the same ns/np group**
-
-    Contribution = **0.35 each**
-
-    For 1s electrons = **0.30 each**
-
-    **2. Electrons in the (n−1) shell**
-
-    Contribution = **0.85 each**
-
-    **3. Electrons in the (n−2) or lower shells**
-
-    Contribution = **1.00 each**
-    """)
-
-    st.divider()
-
-    st.subheader("For nd and nf Electrons")
-
-    st.markdown("""
-    **Other electrons in the same nd/nf group**
-
-    Contribution = **0.35 each**
-
-    **Electrons to the left**
-
-    Contribution = **1.00 each**
-
-    **Electrons to the right**
-
-    Contribution = **0.00**
-    """)
-
-# ==================================================
-# ZEFF CALCULATOR
-# ==================================================
-
-elif menu == "🧮 Zeff Calculator":
-
-    st.header("🧮 Zeff Calculator")
-
-    st.write("""
-    Enter the required values and calculate the
-    Effective Nuclear Charge.
-    """)
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-
-        Z = st.number_input(
-            "Atomic Number (Z)",
-            min_value=1,
-            max_value=100,
-            value=11
+        superscript = "".join(
+            superscripts[digit]
+            for digit in str(electrons)
         )
 
-        same_group = st.number_input(
-            "Number of other electrons in the same group",
-            min_value=0,
-            value=0
-        )
+        text += f"{orbital}{superscript} "
 
-    with col2:
+    return text
 
-        n_minus_1 = st.number_input(
-            "Number of electrons in (n−1) shell",
-            min_value=0,
-            value=8
-        )
 
-        lower_shell = st.number_input(
-            "Number of electrons in (n−2) or lower shells",
-            min_value=0,
-            value=2
-        )
+# ==================================================
+# SLATER'S RULE CALCULATION
+# ==================================================
 
-    electron_type = st.selectbox(
-        "Select Electron Type",
-        [
-            "ns / np electron",
-            "nd / nf electron"
-        ]
-    )
+def calculate_zeff(Z, configuration, selected_orbital):
 
-    if st.button("⚡ Calculate Zeff"):
+    # Get principal quantum number
+    n = int(selected_orbital[0])
 
-        if electron_type == "ns / np electron":
+    # Get orbital type (s, p, d, f)
+    orbital_type = selected_orbital[1]
 
-            S = (
+    # Number of electrons in selected orbital
+    selected_electrons = configuration[selected_orbital]
+
+    # ------------------------------------------------
+    # ns / np ELECTRONS
+    # ------------------------------------------------
+
+    if orbital_type in ["s", "p"]:
+
+        same_group = 0
+
+        # Electrons in ns and np group
+        for orbital, electrons in configuration.items():
+
+            orbital_n = int(orbital[0])
+            orbital_type_current = orbital[1]
+
+            if (
+                orbital_n == n
+                and orbital_type_current in ["s", "p"]
+            ):
+                same_group += electrons
+
+        # Exclude electron being calculated
+        same_group -= 1
+
+        # Special case for 1s
+        if n == 1:
+
+            shielding = same_group * 0.30
+
+            details = {
+                "same_group": same_group,
+                "same_contribution": 0.30,
+                "n_minus_1": 0,
+                "lower": 0
+            }
+
+        else:
+
+            n_minus_1 = 0
+            lower_shell = 0
+
+            for orbital, electrons in configuration.items():
+
+                orbital_n = int(orbital[0])
+
+                # (n-1) shell
+                if orbital_n == n - 1:
+                    n_minus_1 += electrons
+
+                # (n-2) or lower
+                elif orbital_n <= n - 2:
+                    lower_shell += electrons
+
+            shielding = (
                 same_group * 0.35
                 + n_minus_1 * 0.85
                 + lower_shell * 1.00
             )
 
-        else:
+            details = {
+                "same_group": same_group,
+                "same_contribution": 0.35,
+                "n_minus_1": n_minus_1,
+                "lower": lower_shell
+            }
 
-            S = (
-                same_group * 0.35
-                + n_minus_1 * 1.00
-                + lower_shell * 1.00
-            )
+    # ------------------------------------------------
+    # nd / nf ELECTRONS
+    # ------------------------------------------------
 
-        Zeff = Z - S
+    else:
 
-        st.divider()
+        same_group = selected_electrons - 1
 
-        st.success("Calculation Completed Successfully!")
+        left_electrons = 0
 
-        col1, col2 = st.columns(2)
+        # Aufbau order
+        orbital_order = list(configuration.keys())
 
-        with col1:
-            st.metric(
-                "Shielding Constant (S)",
-                f"{S:.2f}"
-            )
+        selected_index = orbital_order.index(selected_orbital)
 
-        with col2:
-            st.metric(
-                "Effective Nuclear Charge (Zeff)",
-                f"{Zeff:.2f}"
-            )
+        for orbital in orbital_order[:selected_index]:
+            left_electrons += configuration[orbital]
 
-        st.subheader("Step-by-Step Calculation")
-
-        st.write(f"### Step 1: Atomic Number")
-
-        st.write(f"Z = **{Z}**")
-
-        st.write("### Step 2: Calculate Shielding Constant")
-
-        if electron_type == "ns / np electron":
-
-            st.write(
-                f"S = ({same_group} × 0.35) + "
-                f"({n_minus_1} × 0.85) + "
-                f"({lower_shell} × 1.00)"
-            )
-
-        else:
-
-            st.write(
-                f"S = ({same_group} × 0.35) + "
-                f"({n_minus_1} × 1.00) + "
-                f"({lower_shell} × 1.00)"
-            )
-
-        st.write(f"### Step 3: Shielding Constant")
-
-        st.write(f"S = **{S:.2f}**")
-
-        st.write("### Step 4: Calculate Effective Nuclear Charge")
-
-        st.latex(
-            rf"Z_{{eff}} = {Z} - {S:.2f}"
+        shielding = (
+            same_group * 0.35
+            + left_electrons * 1.00
         )
 
-        st.latex(
-            rf"Z_{{eff}} = {Zeff:.2f}"
-        )
-
-# ==================================================
-# PRACTICE PROBLEMS
-# ==================================================
-
-elif menu == "📝 Practice Problems":
-
-    st.header("📝 Practice Problems")
-
-    problems = {
-
-        "Problem 1: Sodium (Na)": {
-            "question": """
-            Calculate the Effective Nuclear Charge (Zeff)
-            experienced by the 3s electron of Sodium (Na).
-            """,
-            "answer": """
-            Sodium: Z = 11
-
-            Electron configuration:
-
-            1s² 2s² 2p⁶ 3s¹
-
-            Shielding:
-
-            (2 × 1.00) + (8 × 0.85)
-
-            S = 2 + 6.8
-
-            S = 8.8
-
-            Zeff = Z − S
-
-            Zeff = 11 − 8.8
-
-            Zeff = 2.2
-            """
-        },
-
-        "Problem 2: Oxygen (O)": {
-            "question": """
-            Calculate Zeff experienced by a 2p electron
-            in Oxygen.
-            """,
-
-            "answer": """
-            Oxygen: Z = 8
-
-            Electron configuration:
-
-            1s² 2s² 2p⁴
-
-            Apply Slater's Rules carefully.
-            """
-        },
-
-        "Problem 3: Chlorine (Cl)": {
-            "question": """
-            Calculate Zeff experienced by a 3p electron
-            in Chlorine.
-            """,
-
-            "answer": """
-            Chlorine: Z = 17
-
-            Electron configuration:
-
-            1s² 2s² 2p⁶ 3s² 3p⁵
-
-            Use Slater's Rules to calculate S
-            and then Zeff.
-            """
+        details = {
+            "same_group": same_group,
+            "same_contribution": 0.35,
+            "left": left_electrons
         }
-    }
 
-    selected_problem = st.selectbox(
-        "Select a Problem",
-        list(problems.keys())
+    zeff = Z - shielding
+
+    return shielding, zeff, details
+
+
+# ==================================================
+# TITLE
+# ==================================================
+
+st.title("⚛️ Virtual Chemistry Laboratory")
+
+st.subheader(
+    "Calculation of Effective Nuclear Charge (Zeff) "
+    "Using Slater's Rules"
+)
+
+st.divider()
+
+
+# ==================================================
+# USER INPUT
+# ==================================================
+
+st.header("🧪 Zeff Interactive Calculator")
+
+st.write(
+    "Enter the Atomic Number and select the orbital "
+    "for which you want to calculate Zeff."
+)
+
+Z = st.number_input(
+    "Enter Atomic Number (Z)",
+    min_value=1,
+    max_value=36,
+    value=11,
+    step=1
+)
+
+# Generate electron configuration
+
+configuration = get_electron_configuration(Z)
+
+formatted_config = format_configuration(configuration)
+
+st.subheader("Step 1: Electron Configuration")
+
+st.info(formatted_config)
+
+
+# ==================================================
+# ORBITAL SELECTION
+# ==================================================
+
+available_orbitals = list(configuration.keys())
+
+selected_orbital = st.selectbox(
+    "Step 2: Select the Electron Orbital",
+    available_orbitals
+)
+
+
+# ==================================================
+# CALCULATE BUTTON
+# ==================================================
+
+if st.button("⚡ Calculate Zeff"):
+
+    shielding, zeff, details = calculate_zeff(
+        Z,
+        configuration,
+        selected_orbital
     )
 
-    st.subheader("Question")
+    st.divider()
+
+    st.header("📊 Calculation Results")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        st.metric(
+            "Shielding Constant (S)",
+            f"{shielding:.2f}"
+        )
+
+    with col2:
+
+        st.metric(
+            "Effective Nuclear Charge (Zeff)",
+            f"{zeff:.2f}"
+        )
+
+
+    # ==================================================
+    # STEP-BY-STEP SOLUTION
+    # ==================================================
+
+    st.divider()
+
+    st.header("📝 Step-by-Step Calculation")
+
+    st.write("### Step 1: Atomic Number")
+
+    st.write(f"**Z = {Z}**")
+
+
+    st.write("### Step 2: Electron Configuration")
+
+    st.code(formatted_config)
+
+
+    st.write("### Step 3: Selected Orbital")
 
     st.write(
-        problems[selected_problem]["question"]
+        f"You selected the **{selected_orbital}** orbital."
     )
 
-    if st.button("💡 Show Solution"):
 
-        st.success(
-            problems[selected_problem]["answer"]
+    orbital_type = selected_orbital[1]
+
+    # --------------------------------------------------
+    # ns / np
+    # --------------------------------------------------
+
+    if orbital_type in ["s", "p"]:
+
+        st.write(
+            "### Step 4: Apply Slater's Rules for ns/np Electrons"
         )
 
-# --------------------------------------------------
+        if selected_orbital == "1s":
+
+            st.write(
+                f"Other electrons in the same group = "
+                f"**{details['same_group']}**"
+            )
+
+            st.write(
+                f"Contribution = "
+                f"{details['same_group']} × 0.30"
+            )
+
+            st.write(
+                f"Shielding Constant, S = **{shielding:.2f}**"
+            )
+
+        else:
+
+            st.write(
+                f"Other electrons in the same (ns,np) group = "
+                f"**{details['same_group']}**"
+            )
+
+            st.write(
+                f"Contribution = "
+                f"{details['same_group']} × 0.35"
+            )
+
+            st.write(
+                f"Electrons in (n−1) shell = "
+                f"**{details['n_minus_1']}**"
+            )
+
+            st.write(
+                f"Contribution = "
+                f"{details['n_minus_1']} × 0.85"
+            )
+
+            st.write(
+                f"Electrons in (n−2) or lower shells = "
+                f"**{details['lower']}**"
+            )
+
+            st.write(
+                f"Contribution = "
+                f"{details['lower']} × 1.00"
+            )
+
+            st.write("### Step 5: Calculate Shielding Constant")
+
+            st.latex(
+                rf"""
+                S =
+                ({details['same_group']} \times 0.35)
+                +
+                ({details['n_minus_1']} \times 0.85)
+                +
+                ({details['lower']} \times 1.00)
+                """
+            )
+
+            st.latex(
+                rf"S = {shielding:.2f}"
+            )
+
+
+    # --------------------------------------------------
+    # nd / nf
+    # --------------------------------------------------
+
+    else:
+
+        st.write(
+            "### Step 4: Apply Slater's Rules for nd/nf Electrons"
+        )
+
+        st.write(
+            f"Other electrons in the same group = "
+            f"**{details['same_group']}**"
+        )
+
+        st.write(
+            f"Contribution = "
+            f"{details['same_group']} × 0.35"
+        )
+
+        st.write(
+            f"Electrons to the left = "
+            f"**{details['left']}**"
+        )
+
+        st.write(
+            f"Contribution = "
+            f"{details['left']} × 1.00"
+        )
+
+        st.write("### Step 5: Calculate Shielding Constant")
+
+        st.latex(
+            rf"""
+            S =
+            ({details['same_group']} \times 0.35)
+            +
+            ({details['left']} \times 1.00)
+            """
+        )
+
+        st.latex(
+            rf"S = {shielding:.2f}"
+        )
+
+
+    # ==================================================
+    # FINAL ZEFF
+    # ==================================================
+
+    st.write(
+        "### Step 6: Calculate Effective Nuclear Charge"
+    )
+
+    st.latex(
+        rf"Z_{{eff}} = Z - S"
+    )
+
+    st.latex(
+        rf"Z_{{eff}} = {Z} - {shielding:.2f}"
+    )
+
+    st.latex(
+        rf"\boxed{{Z_{{eff}} = {zeff:.2f}}}"
+    )
+
+    st.success(
+        f"Final Answer: Zeff for {selected_orbital} = {zeff:.2f}"
+    )
+
+
+# ==================================================
 # FOOTER
-# --------------------------------------------------
+# ==================================================
 
 st.divider()
 
 st.caption(
-    "Virtual Chemistry Laboratory | Zeff Calculation Using Slater's Rules"
+    "⚛️ Virtual Chemistry Laboratory | "
+    "Effective Nuclear Charge Calculation Using Slater's Rules"
 )
+```
